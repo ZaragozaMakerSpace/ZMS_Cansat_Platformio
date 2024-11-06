@@ -1,14 +1,13 @@
 void satLaunched() {
 	if (paquete.acMaxima > acc_umbral) {
 		long tiempoParaLanzar = millis() - launchTimerController;
-		Serial.print("Time for launch ");
-		Serial.println(tiempoParaLanzar);
+		DUMP("Time for launch ", tiempoParaLanzar);
 		if (tiempoParaLanzar > launchTimer) {
 			// EEPROM RESET
 			eeAddress = 0;
 			paquete.idPaquete = 0;
 			cansatLanzado = true;
-			Serial.println("CANSAT LANZADO");
+			DUMPSLN("CANSAT LANZADO");
 			// Enviar dato por radio de cansat lanzado
 			char radiopacket[64]; // Tenemos una cadena de texto
 			sprintf(radiopacket, "%s",

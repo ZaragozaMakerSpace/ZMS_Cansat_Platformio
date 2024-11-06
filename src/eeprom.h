@@ -9,11 +9,11 @@ void eepromSave() {
 		miniPaquete.acMinima = (int8_t)acMinima4;
 		EEPROM.put(eeAddress, miniPaquete);
 		eeAddress = ((miniPaquete.idPaquete) / 4) * sizeof(miniPaquete);
-		Serial.println("grabando");
+		DUMPSLN("grabando");
 		acMaxima4 = 0;
 		acMinima4 = 255;
 	} else {
-		Serial.println("No se graba");
+		DUMPSLN("No se graba");
 	}
 }
 
@@ -25,7 +25,7 @@ void eepromGet() {
 			 String(miniPaquete.altitud) + "," +
 			 String(miniPaquete.temperatura) + "," +
 			 String(miniPaquete.acMaxima) + "," + String(miniPaquete.acMinima);
-		Serial.println(s);
+		DUMPV(s);
 		s = "";
 	}
 }

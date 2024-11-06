@@ -7,6 +7,8 @@
 
 /************ Configuración de la Radio  ***************/
 
+#include "utils.h"
+
 // Hay que indicar la frecuenca de nuestra radio
 #define RF69_FREQ 433.0 // esto es un comentario 868//915.0
 
@@ -49,5 +51,4 @@ void setupDatos() {
 	paquete.acMaxima = 0;
 	paquete.acMinima = 2000;
 }
-uint32_t flag = millis();
 bool salvar = true;

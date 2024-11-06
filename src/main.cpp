@@ -3,7 +3,7 @@
 #include "config.h"
 #include "radio.h"
 
-#include "barometro.h"
+#include "BMP280.h"
 #include "eeprom.h"
 
 #include <Ticker.h> //Sistema no bloqueante
@@ -31,16 +31,18 @@ void setup() {
 
 	// inicializacion puerto serie// Dont put this on the stack:
 	Serial.begin(9600);
-	Serial.println(__DATE__);
-	Serial.println(__FILE__);
-	// inicializacion pines
+
+	DUMPSLN("Cansat ZMS");
+	DUMPSLN(__DATE__);
+	DUMPSLN(__FILE__);
+	//  Pin Initialization
 	pinMode(LED, OUTPUT);
 	radioOK = setupRadio();
 	barometroOK = setupBMP();
 	imuOK = setupIMU();
-	setupDatos();		 // Ponemos los datos a valores iniciales.
-	radioTicker.start(); // Inicializamos el evento no bloqueante
-	eepromGet();
+	setupDatos(); // Ponemos los datos a valores iniciales.
+	// radioTicker.start(); // Inicializamos el evento no bloqueante
+	// eepromGet();
 }
 
 void loop() {
@@ -50,12 +52,12 @@ void loop() {
 		acLauncher > acc_umbral) {
 		launchTimerController = millis();
 		launchedTicker.start();
-		Serial.println("TICKER LAUNCH ACTIVADO");
+		DUMPSLN("TICKER LAUNCH ACTIVADO");
 	}
 	if (!cansatLanzado && launchedTicker.state() == RUNNING &&
 		acLauncher < acc_umbral) {
 		launchedTicker.stop();
-		Serial.println("RESET DE IMU TICKER");
+		DUMPSLN("RESET DE IMU TICKER");
 	}
 	if (!cansatLanzado && launchedTicker.state() == RUNNING)
 		launchedTicker.update();
@@ -72,10 +74,8 @@ void loop() {
 		// Comprobamos si recibimos señal de la estación de tierra.
 		if (rf69_manager.recvfrom(buf, &len, &from)) {
 			buf[len] = 0;
-			Serial.print("Got packet from #");
-			Serial.print(from);
-			Serial.print(" [RSSI :");
-			Serial.println(rf69.lastRssi());
+			DUMP("Got packet from #", from);
+			DUMP(" [RSSI :", rf69.lastRssi());
 			if (rf69.lastRssi() < -40 && !falloRadio) {
 				falloRadio = true;
 				salvar = true;
@@ -83,7 +83,7 @@ void loop() {
 				paquete.idPaquete = 0;
 			}
 			String datos = String((char *)buf);
-			Serial.println(datos);
+			DUMPV(datos);
 			if (datos == "salvar") {
 				// EEPROM RESET
 				eeAddress = 0;

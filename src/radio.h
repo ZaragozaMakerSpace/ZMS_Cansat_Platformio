@@ -26,8 +26,7 @@ bool setupRadio() {
 	pinMode(RFM69_RST, OUTPUT);
 	digitalWrite(RFM69_RST, LOW);
 
-	Serial.println("Transmisón desde el satélite");
-	Serial.println("");
+	DUMPSLN("Transmisón desde el satélite");
 
 	// manual reset para activar la radio.
 	digitalWrite(RFM69_RST, HIGH);
@@ -40,7 +39,7 @@ bool setupRadio() {
 	}
 
 	if (!rf69.setFrequency(RF69_FREQ)) {
-		Serial.println("setFrequency failed \n CHECK RADIO TX/RX");
+		DUMPSLN("setFrequency failed \n CHECK RADIO TX/RX");
 	}
 
 	rf69.setTxPower(20); // rango de 14-20 arg must be true for 69HCW
@@ -53,9 +52,9 @@ bool setupRadio() {
 
 	pinMode(LED, OUTPUT);
 
-	Serial.print("RFM69 radio @");
-	Serial.print((int)RF69_FREQ);
-	Serial.println(" MHz");
+	DUMP("RFM69 radio @", (int)RF69_FREQ);
+	DUMPSLN(" MHz");
+	return radioOk;
 }
 
 String datosRadio() {

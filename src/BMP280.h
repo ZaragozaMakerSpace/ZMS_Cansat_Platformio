@@ -1,5 +1,5 @@
 #include <Adafruit_BMP280.h> //Sensor de temperatura
-#include <Arduino.h>		 //incluimos las libreías de arduino
+#include <Arduino.h>		 //incluimos las librerias de arduino
 #include <Wire.h>			 //Librería del protocolo I2C
 
 // Declaracion de variables
@@ -32,8 +32,7 @@ void radioInfo() {
 	sprintf(radiopacket, "%s",
 			strPaquete.c_str()); // Metemos en la cadena de texto la parte que
 								 // nos interesa del mensaje(tipo String)
-	Serial.print("enviando ");
-	Serial.print(radiopacket);
+	DUMP("enviando ", radiopacket);
 
 	// Enviar el mensaje al DESTINO (DEST_ADDRESS)
 
