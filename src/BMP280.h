@@ -19,24 +19,3 @@ bool setupBMP() {
 	return status;
 
 } // Fin de la función de inicialización del barómetro
-
-void radioInfo() {
-	paquete.idPaquete++; // incrementamos el valor de paquete a enviar
-	paquete.temperatura = bmp.readTemperature();
-	paquete.altitud = bmp.readAltitude(1013.25);
-
-	String strPaquete =
-		datosRadio();	  // Crea el paquete completo con la información;
-	char radiopacket[64]; // Tenemos una cadena de texto
-
-	sprintf(radiopacket, "%s",
-			strPaquete.c_str()); // Metemos en la cadena de texto la parte que
-								 // nos interesa del mensaje(tipo String)
-	DUMP("enviando ", radiopacket);
-
-	// Enviar el mensaje al DESTINO (DEST_ADDRESS)
-
-	rf69_manager.sendto((uint8_t *)radiopacket, strlen(radiopacket),
-						DEST_ADDRESS);
-	setupDatos();
-}

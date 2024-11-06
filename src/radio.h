@@ -9,6 +9,8 @@
   RH_RF69_HEADER_LEN)
 */
 
+uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
+
 // Creamos un "objeto" radio con el trabajaremos.
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
@@ -65,4 +67,63 @@ String datosRadio() {
 		paquete.altitud + ";" + paquete.acMaxima + ";" + paquete.acMinima +
 		"\n";
 	return s;
+}
+
+void radioSendInfo() {
+	paquete.idPaquete++; // incrementamos el valor de paquete a enviar
+	paquete.temperatura = bmp.readTemperature();
+	paquete.altitud = bmp.readAltitude(1013.25);
+
+	String strPaquete =
+		datosRadio();	  // Crea el paquete completo con la información;
+	char radiopacket[64]; // Tenemos una cadena de texto
+
+	sprintf(radiopacket, "%s",
+			strPaquete.c_str()); // Metemos en la cadena de texto la parte que
+								 // nos interesa del mensaje(tipo String)
+	DUMP("enviando ", radiopacket);
+
+	// Enviar el mensaje al DESTINO (DEST_ADDRESS)
+
+	/* rf69_manager.sendto((uint8_t *)radiopacket, strlen(radiopacket),
+						DEST_ADDRESS);
+	*/
+	// rf69.send((uint8_t *)radiopacket, strlen(radiopacket));
+	// rf69.waitPacketSent();
+	setupDatos();
+}
+
+void getRadioInfo() {
+	if (rf69_manager.available()) {
+		uint8_t len = sizeof(buf);
+		uint8_t from;
+		if (paquete.idPaquete % 4 == 0) {
+			eepromSave();
+		}
+		if (paquete.idPaquete % 3 == 0) {
+			acLauncher = 0;
+		}
+		// Comprobamos si recibimos señal de la estación de tierra.
+		if (rf69_manager.recvfrom(buf, &len, &from)) {
+			buf[len] = 0;
+			DUMP("Got packet from #", from);
+			DUMP(" [RSSI :", rf69.lastRssi());
+			if (rf69.lastRssi() < -40 && !falloRadio) {
+				// falloRadio = true;
+				salvar = true;
+				eeAddress = 0;
+				paquete.idPaquete = 0;
+			}
+			String datos = String((char *)buf);
+			DUMPV(datos);
+			if (datos == "salvar") {
+				// EEPROM RESET
+				eeAddress = 0;
+				paquete.idPaquete = 0;
+				salvar = true;
+			}
+		}
+	} else {
+		DUMPSLN("RF69 Manager is not available")
+	}
 }

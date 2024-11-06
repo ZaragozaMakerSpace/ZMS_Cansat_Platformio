@@ -10,7 +10,7 @@
 #include "utils.h"
 
 // Hay que indicar la frecuenca de nuestra radio
-#define RF69_FREQ 433.0 // esto es un comentario 868//915.0
+#define RF69_FREQ 868.0 // esto es un comentario 868//915.0
 
 // Cada radio tiene un identificador
 #define DEST_ADDRESS 1 // Esta es el identificador de la estación base.
