@@ -1,6 +1,3 @@
-#ifndef _CANSAT_CONFIG_H
-#define _CANSAT_CONFIG_H
-
 // ------------------ SERIAL CONFIG --------------------//
 #define DEBUG false
 #define PRINTDEBUG true
@@ -26,4 +23,3 @@
 		DUMPS(s);                                                              \
 		DUMPV(v);                                                              \
 	}
-#endif
