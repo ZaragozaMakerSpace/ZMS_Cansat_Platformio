@@ -3,6 +3,7 @@
 #include "../config.h"
 
 #include "I2Cdev.h"
+#include <Servo.h>
 
 #include "MPU6050_6Axis_MotionApps612.h"
 
@@ -13,6 +14,9 @@
 #define OUTPUT_READABLE_YAWPITCHROLL
 #define INTERRUPT_PIN 2
 MPU6050 mpu;
+
+Servo myServo;
+int servoPin = 9;
 
 // MPU control/status vars
 bool dmpReady = false;	// set true if DMP init was successful

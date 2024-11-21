@@ -6,6 +6,12 @@
 
 #include "MPU6050_6Axis_MotionApps612.h"
 
+#include <DFRobotDFPlayerMini.h>
+#include <SoftwareSerial.h>
+
+SoftwareSerial mySoftwareSerial(10, 11); // RX, TX
+DFRobotDFPlayerMini myDFPlayer;
+
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
 #include "Wire.h"
 #endif
@@ -42,6 +48,9 @@ void setup() {
 	if (PRINTDEBUG)
 		SERIALDEBUG.begin(SERIALBAUDS);
 	DUMPSLN("Cansat MPU6050");
+
+	mySoftwareSerial.begin(9600);
+
 	Wire.begin();
 	pinMode(INTERRUPT_PIN, INPUT);
 
@@ -91,6 +100,18 @@ void setup() {
 		// (if it's going to break, usually the code will be 1)
 		DUMP("DMP Initialization failed : ", devStatus)
 	}
+
+	if (!myDFPlayer.begin(mySoftwareSerial)) {
+		Serial.println("Unable to begin:");
+		Serial.println("1.Please recheck the connection!");
+		Serial.println("2.Please insert the SD card!");
+		while (true)
+			;
+	}
+	Serial.println("DFPlayer Mini online.");
+
+	myDFPlayer.volume(10); // Set volume value (0~30).
+	myDFPlayer.play(1);	   // Play the first MP3 file.
 }
 
 void loop() {

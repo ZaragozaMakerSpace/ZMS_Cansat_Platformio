@@ -1,7 +1,6 @@
 #include <Arduino.h>
 
 #include "../config.h"
-#include "../utils.h"
 #include "Wire.h"
 #include <MPU6050_light.h>
 

@@ -8,6 +8,7 @@
 /************ Configuración de la Radio  ***************/
 
 #include "utils.h"
+// #define IMU_INTERRUPTION
 
 // Hay que indicar la frecuenca de nuestra radio
 #define RF69_FREQ 868.0 // esto es un comentario 868//915.0

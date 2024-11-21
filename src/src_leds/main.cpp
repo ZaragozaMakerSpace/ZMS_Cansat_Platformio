@@ -4,6 +4,17 @@
 
 #include "I2Cdev.h"
 
+#include <Adafruit_NeoPixel.h>
+#ifdef __AVR__
+#include <avr/power.h>
+#endif
+
+#define PIN 6		 // Pin donde está conectado el NeoPixel
+#define NUMPIXELS 16 // Número de LEDs en el anillo NeoPixel
+
+Adafruit_NeoPixel strip =
+	Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+
 #include "MPU6050_6Axis_MotionApps612.h"
 
 #if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
