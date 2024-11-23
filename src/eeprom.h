@@ -1,31 +1,21 @@
+#include <Arduino.h>
 #include <EEPROM.h>
+
+#ifndef _CANSAT_EEPROM_H
+#define _CANSAT_EEPROM_H
+
 uint8_t eeAddress = 0;
-void eepromSave() {
-	if (salvar) {
-		miniPaquete.idPaquete = (int16_t)(paquete.idPaquete);
-		miniPaquete.altitud = (int8_t)(paquete.altitud / 10);
-		miniPaquete.temperatura = (int8_t)paquete.temperatura;
-		miniPaquete.acMaxima = (int8_t)acMaxima4;
-		miniPaquete.acMinima = (int8_t)acMinima4;
-		EEPROM.put(eeAddress, miniPaquete);
-		eeAddress = ((miniPaquete.idPaquete) / 4) * sizeof(miniPaquete);
-		DUMPSLN("grabando");
-		acMaxima4 = 0;
-		acMinima4 = 255;
-	} else {
-		DUMPSLN("No se graba");
+template <typename T> void EEPROMWrite(int startAddr, const T &value) {
+	const byte *ptr = (const byte *)(const void *)&value;
+	for (unsigned i = 0; i < sizeof(value); i++) {
+		EEPROM.update(startAddr++, *ptr++);
 	}
 }
 
-void eepromGet() {
-	String s = "";
-	for (uint8_t i = 0; i < 1024 / sizeof(miniPaquete); i++) {
-		EEPROM.get(i * sizeof(miniPaquete), miniPaquete);
-		s += String(i) + ":" + String(miniPaquete.idPaquete) + "," +
-			 String(miniPaquete.altitud) + "," +
-			 String(miniPaquete.temperatura) + "," +
-			 String(miniPaquete.acMaxima) + "," + String(miniPaquete.acMinima);
-		DUMPV(s);
-		s = "";
+template <typename T> void EEPROMRead(int startAddr, T &value) {
+	byte *ptr = (byte *)(void *)&value;
+	for (unsigned i = 0; i < sizeof(value); i++) {
+		*ptr++ = EEPROM.read(startAddr++);
 	}
 }
+#endif

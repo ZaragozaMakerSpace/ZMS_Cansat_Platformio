@@ -5,11 +5,6 @@
 #include <RH_RF69.h>
 #include <SPI.h>
 
-#define RF69_FREQ 868.0
-
-#define RFM69_CS 10 // Pin CS (NSS)
-#define RFM69_INT 3 // Pin de interrupción (DIO0)
-
 RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
 bool waitForPacketSent(uint16_t timeout) {

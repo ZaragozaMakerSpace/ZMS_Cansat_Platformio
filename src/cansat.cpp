@@ -1,3 +1,5 @@
+/*
+
 #include <Arduino.h>
 
 #include "../config.h"
@@ -39,7 +41,6 @@ void setup() {
 	radioOK = setupRadio();
 	barometroOK = setupBMP();
 	imuOK = setupIMU();
-	setupDatos();			 // Ponemos los datos a valores iniciales.
 	sendRadioTicker.start(); // Inicializamos el evento no bloqueante
 	// eepromGet();
 	getRadioTicker.start();
@@ -63,3 +64,5 @@ void loop() {
 	if (!cansatLanzado && launchedTicker.state() == RUNNING)
 		launchedTicker.update();
 }
+
+*/

@@ -2,6 +2,11 @@
 
 #include "../config.h"
 
+#ifdef EEPROM_SAVEDATA
+#include "../eeprom.h"
+#include "datamodel.h"
+#endif
+
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>

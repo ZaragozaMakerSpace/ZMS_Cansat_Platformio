@@ -90,7 +90,7 @@ void radioSendInfo() {
 	*/
 	// rf69.send((uint8_t *)radiopacket, strlen(radiopacket));
 	// rf69.waitPacketSent();
-	setupDatos();
+	// setupDatos();
 }
 
 void getRadioInfo() {

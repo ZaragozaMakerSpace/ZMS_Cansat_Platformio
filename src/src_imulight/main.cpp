@@ -1,6 +1,12 @@
 #include <Arduino.h>
 
 #include "../config.h"
+
+#ifdef EEPROM_SAVEDATA
+#include "../eeprom.h"
+#include "datamodel.h"
+#endif
+
 #include "Wire.h"
 #include <MPU6050_light.h>
 

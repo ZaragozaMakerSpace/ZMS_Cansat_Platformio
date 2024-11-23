@@ -2,6 +2,11 @@
 
 #include "../config.h"
 
+#ifdef EEPROM_SAVEDATA
+#include "../eeprom.h"
+#include "datamodel.h"
+#endif
+
 #include "I2Cdev.h"
 
 #include "MPU6050_6Axis_MotionApps612.h"

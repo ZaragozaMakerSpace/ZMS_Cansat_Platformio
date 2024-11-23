@@ -1,14 +1,8 @@
-/*
- * Creamos una unidad de información con formato de estructura
- * Se crea GLOBAL para evitar tener que pasar datos y solo se actualizan en su
- * función
- *
- */
-
+#ifndef _CANSAT_CONFIG_H
+#define _CANSAT_CONFIG_H
+/*******************************************************/
 /************ Configuración de la Radio  ***************/
-
-#include "utils.h"
-// #define IMU_INTERRUPTION
+/*******************************************************/
 
 // Hay que indicar la frecuenca de nuestra radio
 #define RF69_FREQ 868.0 // esto es un comentario 868//915.0
@@ -21,35 +15,47 @@
 
 // Pines donde están conectadas nuestras placas, definidos por el fabricante
 
-#define RFM69_INT 3 //
-#define RFM69_CS 10 //
-#define RFM69_RST 4 //
+#define RFM69_INT 3 // Pin de interrupción (DIO0)
+#define RFM69_CS 10 // Pin CS (NSS)
+#define RFM69_RST 9 //
 #define LED 13
 
-// El tamaño de la estructura es de muy grande (18 Bytes)
-struct dato {
-	uint16_t idPaquete;
-	float temperatura;
-	float altitud;
-	float acMaxima;
-	float acMinima;
-} paquete;
+/*******************************************************/
+/**************** Configuración EEPROM  *******************/
+/*******************************************************/
 
-struct miniDato {
-	int16_t idPaquete;
-	int8_t temperatura;
-	int8_t altitud;
-	int8_t acMaxima;
-	int8_t acMinima;
-} miniPaquete;
+#define EEPROM_SAVEDATA
 
-uint8_t acMaxima4 = 0;
-uint8_t acMinima4 = 255;
+/*******************************************************/
+/**************** Configuración IMU  *******************/
+/*******************************************************/
 
-uint8_t acLauncher = 0;
+// #define IMU_INTERRUPTION
 
-void setupDatos() {
-	paquete.acMaxima = 0;
-	paquete.acMinima = 2000;
-}
-bool salvar = true;
+// ------------------ SERIAL CONFIG --------------------//
+#define DEBUG false
+#define PRINTDEBUG true
+#define SERIALDEBUG Serial
+#define SERIALBAUDS 115200
+
+#define DUMPS(s)                                                               \
+	{ SERIALDEBUG.print(F(s)); }
+#define DUMPSLN(s)                                                             \
+	{ SERIALDEBUG.println(F(s)); }
+#define DUMPPRINTLN()                                                          \
+	{ SERIALDEBUG.println(); }
+#define DUMPV(v)                                                               \
+	{ SERIALDEBUG.print(v); }
+#define DUMPLN(s, v)                                                           \
+	{                                                                          \
+		DUMPS(s);                                                              \
+		DUMPV(v);                                                              \
+		DUMPPRINTLN();                                                         \
+	}
+#define DUMP(s, v)                                                             \
+	{                                                                          \
+		DUMPS(s);                                                              \
+		DUMPV(v);                                                              \
+	}
+
+#endif

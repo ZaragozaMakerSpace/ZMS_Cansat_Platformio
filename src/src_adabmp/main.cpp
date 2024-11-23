@@ -1,6 +1,12 @@
 #include <Arduino.h>
 
 #include "../config.h"
+
+#ifdef EEPROM_SAVEDATA
+#include "../eeprom.h"
+#include "datamodel.h"
+#endif
+
 #include <Adafruit_BMP280.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
