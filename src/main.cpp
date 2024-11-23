@@ -43,3 +43,7 @@
 #ifdef LEDS
 #include "src_leds/main.cpp"
 #endif
+
+#ifdef RADIO_MSG
+#include "src_radio_msg/main.cpp"
+#endif

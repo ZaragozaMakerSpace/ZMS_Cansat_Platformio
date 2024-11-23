@@ -15,7 +15,7 @@
 
 // Pines donde están conectadas nuestras placas, definidos por el fabricante
 
-#define RFM69_INT 3 // Pin de interrupción (DIO0)
+#define RFM69_INT 2 // Pin de interrupción (DIO0)
 #define RFM69_CS 10 // Pin CS (NSS)
 #define RFM69_RST 9 //
 #define LED 13
@@ -30,7 +30,7 @@
 /**************** Configuración IMU  *******************/
 /*******************************************************/
 
-#define IMU_INTERRUPTION
+// #define IMU_INTERRUPTION
 #define IMU_INTERRUPT_PIN 2 // Avoid Pin 2 connected to Radio
 
 /*******************************************************/

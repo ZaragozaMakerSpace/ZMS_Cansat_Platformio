@@ -9,8 +9,13 @@
 
 #include "Wire.h"
 #include <MPU6050_light.h>
+#include <RH_RF69.h>
+#include <SPI.h>
+
+RH_RF69 rf69(RFM69_CS, RFM69_INT);
 
 // #include "imu.cpp"
+#include "../radio.h"
 
 MPU6050 mpu(Wire);
 unsigned long timer = 0;
@@ -36,6 +41,7 @@ void calculateIMU(float ax, float ay, float az) {
 	// se aproxima a cero (ajustar umbral) en acc_zero_threshold
 	if (abs(average) < acc_zero_threshold) {
 		DUMPSLN("Apogee detected!");
+		// sendMsg();
 	}
 }
 
@@ -44,7 +50,7 @@ void setup() {
 		SERIALDEBUG.begin(SERIALBAUDS);
 	DUMPSLN("Cansat IMULIGHT");
 	Wire.begin();
-
+	// setupRadio();
 	byte status = mpu.begin();
 	if (status == 0) {
 		DUMPSLN("MPU6050 connection successful");

@@ -1,8 +1,5 @@
-#include <RHDatagram.h>
-#include <RH_RF69.h>
-#include <SPI.h>
-
-/*//Tamaño del mensaje
+/*
+	//Tamaño del mensaje
   #define RH_RF69_MAX_ENCRYPTABLE_PAYLOAD_LEN 64 //tamaño del mensaje
   codificable #define RH_RF69_HEADER_LEN 4 //tamaño de la cabecera #define
   RH_RF69_MAX_MESSAGE_LEN (RH_RF69_MAX_ENCRYPTABLE_PAYLOAD_LEN -
@@ -10,55 +7,63 @@
 */
 
 uint8_t buf[RH_RF69_MAX_MESSAGE_LEN];
-
-// Creamos un "objeto" radio con el trabajaremos.
-RH_RF69 rf69(RFM69_CS, RFM69_INT);
-
-// Control de los mensajes, entrantes y salientes
-// Solo acepta los de su dirección.
-RHDatagram rf69_manager(rf69, MY_ADDRESS);
-
 int16_t packetnum = 0; // Contador de mensajes recibidos
 
-// declaracion variables
+bool waitForPacketSent(uint16_t timeout) {
+	unsigned long startTime = millis();
+	Serial.println(digitalRead(RFM69_INT));
+	while (rf69.waitPacketSent(0)) {
+		if (millis() - startTime > timeout) {
+			Serial.println("Tiempo de espera agotado al enviar el paquete");
+			return false;
+		}
+	}
+	return true;
+}
+
+bool sendMsg() {
+	const char *message = "Hola chicos. Estoy aqui :)";
+	rf69.send((uint8_t *)message, strlen(message));
+	if (waitForPacketSent(1000)) {
+		Serial.println("Mensaje enviado");
+	} else {
+		Serial.println("Error : pinDIO not connected");
+		// Puedes intentar reiniciar el módulo aquí si es necesario
+	}
+}
 
 bool setupRadio() {
-	bool radioOk = false;
 
 	pinMode(RFM69_RST, OUTPUT);
 	digitalWrite(RFM69_RST, LOW);
 
-	DUMPSLN("Transmisón desde el satélite");
-
-	// manual reset para activar la radio.
 	digitalWrite(RFM69_RST, HIGH);
-	delay(10);
+	delay(100);
 	digitalWrite(RFM69_RST, LOW);
-	delay(10);
+	delay(100);
 
-	if (rf69_manager.init()) {
-		radioOk = true;
+	if (!rf69.init()) {
+		Serial.println("RF69 Init Failed");
 	}
 
 	if (!rf69.setFrequency(RF69_FREQ)) {
-		DUMPSLN("setFrequency failed \n CHECK RADIO TX/RX");
+		Serial.println("FREQUENCY ERROR");
 	}
 
-	rf69.setTxPower(20); // rango de 14-20 arg must be true for 69HCW
+	// Configura la potencia de transmisión (14 dBm)
+	rf69.setTxPower(14, true);
 
+	Serial.println("Transmisor RF69 listo");
 	// Tenemos una clave de cifrado para los mensajes, debe ser la misma en el
 	// emisor y el receptor
+	/*
 	uint8_t key[] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
 					 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08};
 	rf69.setEncryptionKey(key);
-
-	pinMode(LED, OUTPUT);
-
-	DUMP("RFM69 radio @", (int)RF69_FREQ);
-	DUMPSLN(" MHz");
-	return radioOk;
+*/
 }
 
+/*
 String datosRadio() {
 	String s = "";
 	// Construimos un mensaje de texto sumando los valores interpretados como un
@@ -85,9 +90,9 @@ void radioSendInfo() {
 
 	// Enviar el mensaje al DESTINO (DEST_ADDRESS)
 
-	/* rf69_manager.sendto((uint8_t *)radiopacket, strlen(radiopacket),
+	rf69_manager.sendto((uint8_t *)radiopacket, strlen(radiopacket),
 						DEST_ADDRESS);
-	*/
+
 	// rf69.send((uint8_t *)radiopacket, strlen(radiopacket));
 	// rf69.waitPacketSent();
 	// setupDatos();
@@ -127,3 +132,4 @@ void getRadioInfo() {
 		DUMPSLN("RF69 Manager is not available")
 	}
 }
+*/
