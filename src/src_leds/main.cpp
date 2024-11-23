@@ -7,119 +7,116 @@
 #include "datamodel.h"
 #endif
 
-#include "I2Cdev.h"
+#include "Wire.h"
+#include <MPU6050_light.h>
 
 #include <Adafruit_NeoPixel.h>
 #ifdef __AVR__
 #include <avr/power.h>
 #endif
 
-#define PIN 6		 // Pin donde está conectado el NeoPixel
-#define NUMPIXELS 16 // Número de LEDs en el anillo NeoPixel
-
 Adafruit_NeoPixel strip =
-	Adafruit_NeoPixel(NUMPIXELS, PIN, NEO_GRB + NEO_KHZ800);
+	Adafruit_NeoPixel(NUMPIXELS, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
-#include "MPU6050_6Axis_MotionApps612.h"
+MPU6050 mpu(Wire);
+unsigned long timer = 0;
+unsigned long readingInterval = 100;
 
-#if I2CDEV_IMPLEMENTATION == I2CDEV_ARDUINO_WIRE
-#include "Wire.h"
-#endif
+#define NUM_READINGS 30
+float readings[NUM_READINGS]; // almacena las lecturas para calcular el promedio
+int readIndex = 0;			  // el índice de la lectura actual
+float total = 0;			  // la suma total de las lecturas
+float average = 0;			  // el promedio
+float acc_zero_threshold = 0.2;
 
-#define OUTPUT_READABLE_YAWPITCHROLL
-#define INTERRUPT_PIN 2
-MPU6050 mpu;
+void calculateIMU(float ax, float ay, float az) {
+	total = total - readings[readIndex];
+	readings[readIndex] = sqrt(ax * ax + ay * ay + az * az) -
+						  9.81; // aceleración total menos la gravedad
+	total = total + readings[readIndex];
+	readIndex = (readIndex + 1) % NUM_READINGS;
+	average = total / NUM_READINGS;
 
-// MPU control/status vars
-bool dmpReady = false;	// set true if DMP init was successful
-uint8_t mpuIntStatus;	// holds actual interrupt status byte from MPU
-uint8_t devStatus;		// return status (0 = success, !0 = error)
-uint16_t packetSize;	// expected DMP packet size (default is 42 bytes)
-uint16_t fifoCount;		// count of all bytes currently in FIFO
-uint8_t fifoBuffer[64]; // FIFO storage buffer
+	DUMPLN("Average acceleration: ", average);
 
-// orientation/motion vars
-Quaternion q;		 // [w, x, y, z] quaternion container
-VectorInt16 aa;		 // [x, y, z] accel sensor measurements
-VectorInt16 aaReal;	 // [x, y, z] gravity-free accel sensor measurements
-VectorInt16 aaWorld; // [x, y, z] world-frame accel sensor measurements
-VectorFloat gravity; // [x, y, z] gravity vector
-float euler[3];		 // [psi, theta, phi]    Euler angle container
-float ypr[3];		 // [yaw, pitch, roll]
-
-// ================================================================
-// ===               INTERRUPT DETECTION ROUTINE                ===
-// ================================================================
-
-volatile bool mpuInterrupt = false; // indicates MPU interrupt pin has gone high
-void dmpDataReady() { mpuInterrupt = true; }
+	// se aproxima a cero (ajustar umbral) en acc_zero_threshold
+	if (abs(average) < acc_zero_threshold) {
+		DUMPSLN("Apogee detected!");
+	}
+}
 
 void setup() {
 	if (PRINTDEBUG)
 		SERIALDEBUG.begin(SERIALBAUDS);
 	DUMPSLN("Cansat MPU6050");
 	Wire.begin();
-	pinMode(INTERRUPT_PIN, INPUT);
 
-	// verify connection
-	mpu.initialize();
-	DUMPLN("Status ", mpu.testConnection());
-
-	// load and configure the DMP
-	DUMPSLN("Initializing DMP...");
-	devStatus = mpu.dmpInitialize();
-
-	// supply your own gyro offsets here, scaled for min sensitivity
-	mpu.setXGyroOffset(51);
-	mpu.setYGyroOffset(8);
-	mpu.setZGyroOffset(21);
-	mpu.setXAccelOffset(1150);
-	mpu.setYAccelOffset(-50);
-	mpu.setZAccelOffset(1060);
-	if (devStatus == 0) {
-		// Calibration Time: generate offsets and calibrate our MPU6050
-		mpu.CalibrateAccel(6);
-		mpu.CalibrateGyro(6);
-		mpu.PrintActiveOffsets();
-		// turn on the DMP, now that it's ready
-		DUMPSLN("Enabling DMP...");
-		mpu.setDMPEnabled(true);
-
-		// enable Arduino interrupt detection
-		DUMP("Enabling interrupt detection (Arduino external interrupt ",
-			 digitalPinToInterrupt(INTERRUPT_PIN));
-		DUMPSLN(")...");
-		attachInterrupt(digitalPinToInterrupt(INTERRUPT_PIN), dmpDataReady,
-						RISING);
-		mpuIntStatus = mpu.getIntStatus();
-
-		// set our DMP Ready flag so the main loop() function knows it's okay to
-		// use it
-		Serial.println(F("DMP ready! Waiting for first interrupt..."));
-		dmpReady = true;
-
-		// get expected DMP packet size for later comparison
-		packetSize = mpu.dmpGetFIFOPacketSize();
+	strip.begin();
+	strip.show();
+	strip.setBrightness(PIXEL_BRIGHTNESS);
+	byte status = mpu.begin();
+	if (status == 0) {
+		DUMPSLN("MPU6050 connection successful");
 	} else {
-		// ERROR!
-		// 1 = initial memory load failed
-		// 2 = DMP configuration updates failed
-		// (if it's going to break, usually the code will be 1)
-		DUMP("DMP Initialization failed : ", devStatus)
+		DUMPSLN("MPU6050 connection failed");
 	}
+
+	DUMPSLN("Calculating offsets, do not move MPU6050");
+
+	/*
+	 * case 0: // range = +- 2 g
+	 * case 1: // range = +- 4 g
+	 * case 2: // range = +- 8 g
+	 * case 3: // range = +- 16 g
+	 */
+	mpu.setAccConfig(3);
+	mpu.calcOffsets(true, true);
+
+	// Offset to calculate before launch
+	mpu.setAccOffsets(0, 0, -8.83);
+	DUMPSLN("Done!\n");
 }
 
 void loop() {
+	unsigned long currentMillis = millis();
 
-	if (!dmpReady)
-		return;
-	if (mpu.dmpGetCurrentFIFOPacket(fifoBuffer)) {
-		// From Quaternion to YPR
-		mpu.dmpGetQuaternion(&q, fifoBuffer);
-		mpu.dmpGetGravity(&gravity, &q);
-		mpu.dmpGetYawPitchRoll(ypr, &q, &gravity);
-		DUMP("ypr\t", ypr[0] * 180 / M_PI);
-		DUMP("\t", ypr[1] * 180 / M_PI);
-		DUMP("\t", ypr[2] * 180 / M_PI);
+	if (currentMillis - previousMillis >= PIXEL_INTERVAL) {
+		previousMillis = currentMillis;
+
+		if (currentLED < strip.numPixels()) {
+			strip.setPixelColor(currentLED, strip.Color(0, 255, 0));
+			strip.show();
+			currentLED++;
+			DUMPLN("LED ON: ", currentLED)
+		} else {
+
+			strip.clear();
+			strip.show();
+			currentLED = 0;
+		}
+	}
+	mpu.update();
+	if (millis() - timer > readingInterval) {
+		float ax = mpu.getAccX(), ay = mpu.getAccY(), az = mpu.getAccZ();
+		if (DEBUG) {
+			DUMP("TEMPERATURE: ", mpu.getTemp());
+			DUMP("ACC X: ", ax);
+			DUMP("\tY: ", ay);
+			DUMPLN("\tZ: ", az);
+
+			DUMP("GYRO      X: ", mpu.getGyroX());
+			DUMP("\tY: ", mpu.getGyroY());
+			DUMPLN("\tZ: ", mpu.getGyroZ());
+
+			DUMP("ACC ANGLE X: ", mpu.getAccAngleX());
+			DUMPLN("\tY: ", mpu.getAccAngleY());
+
+			DUMP("ANGLE     X: ", mpu.getAngleX());
+			DUMP("\tY: ", mpu.getAngleY());
+			DUMP("\tZ: ", mpu.getAngleZ());
+			DUMPSLN("=====================================================");
+		}
+		timer = millis();
+		calculateIMU(ax, ay, az);
 	}
 }

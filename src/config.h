@@ -30,7 +30,19 @@
 /**************** Configuración IMU  *******************/
 /*******************************************************/
 
-// #define IMU_INTERRUPTION
+#define IMU_INTERRUPTION
+#define IMU_INTERRUPT_PIN 2 // Avoid Pin 2 connected to Radio
+
+/*******************************************************/
+/************ Configuración LED Pixels  ****************/
+/*******************************************************/
+
+#define PIXEL_PIN 9
+#define NUMPIXELS 7
+#define PIXEL_INTERVAL 250
+#define PIXEL_BRIGHTNESS 50
+unsigned long previousMillis = 0;
+int currentLED = 0;
 
 // ------------------ SERIAL CONFIG --------------------//
 #define DEBUG false
